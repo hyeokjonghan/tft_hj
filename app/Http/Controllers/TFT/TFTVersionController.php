@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\TFT;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Lib\CURLController;
 use App\Models\TFT\TFTVersion;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -22,7 +23,40 @@ class TFTVersionController extends Controller
 
      /** 버전 최신화 스케줄링 용 */
      public function autoSetVersion() {
+        // 최신 버전 데이터 가져오기
+        $curlController = new CURLController();
+        $versionData = $curlController->getCURL('https://ddragon.leagueoflegends.com/api/versions.json');
+        if($versionData['code'] == "200") {
+            $versionData = json_decode($versionData['data']);
+            // 최초 입력인지 아닌지 확인
+            $checkVersionList = TFTVersion::select('*')->get();
 
+            // 최초 입력
+            if(count($checkVersionList) == 0) {
+                foreach($versionData as $version) {
+                    $newVersion = new TFTVersion(['version'=>$version]);
+                    $newVersion->save();
+                }
+
+                return response()->caps('version renewal check success.');
+            } else {
+                // 추후 입력
+                $insertVersionCheck = TFTVersion::where('version', $versionData[0])->first();
+                if($insertVersionCheck) {
+                    return response()->caps('already latest version.');
+                } else {
+                    $newVersion = new TFTVersion(['version'=>$versionData[0]]);
+                    $newVersion->save();
+                    return response()->caps('version renewal check success.');
+                    
+                }
+                
+            }
+            return $versionData;
+        } else {
+            return response()->cpas('get version data fail.', $versionData['code']);
+        }
+        
      }
 
      /** 현재 적용 버전 가져오기 */
@@ -64,6 +98,6 @@ class TFTVersionController extends Controller
 
      /** 적용 가능한 버전 업데이트 */
      public function setApplicableVersionUpdate(Request $request) {
-        
+
      }
 }

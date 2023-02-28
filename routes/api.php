@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\ApiAuthController;
+use App\Http\Controllers\TFT\TFTVersionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UploadController;
@@ -31,10 +32,12 @@ Route::prefix('upload')->group(function() {
     Route::post('/{uploadDivision}',[UploadController::class,'fileUpload']);
 });
 
+Route::get('/version/test',[TFTVersionController::class, 'autoSetVersion']);
 
 // 로그인 하고 사용 할 수 있는 API
 Route::middleware('auth:api')->group(function() {
     // 관리자만 사용 할 수 있는 API
-
+    
     // 일반 유저도 사용 할 수 있는 API
+
 });
